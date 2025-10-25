@@ -30,22 +30,35 @@
 
 #------Inicio del script-----
 
-        #Controla que se pase mínimo 1 parámetro
+    #Controla que se pase mínimo 1 parámetro
 if [ $# -eq 0 ]; then
-        echo "Error, no se ha pasado ningún parámetro"
-        echo "Uso de $0: <script><acción><opciones>"
-        exit 1
+    echo "Error, no se ha pasado ningún parámetro"
+    echo "Uso de $0: <script><acción><opciones>"
+    exit 1
 fi
 
 #--Uso 1--
 if [ "$1" = "nuevaconfig" ]; then
-        if [ $# -eq 2 ]; then
-                echo "Error, no se han pasado los parámetros específicos"
-                echo "Uso 1 de $0: <script> <nuevaconfig> <nombre_de_la_nueva_configuracion>"
-                exit 1
+            #Controla que se hayan pasado los parámetros necesarios
+        if [ $# -ne 2 ]; then
+            echo "Error, no se han pasado los parámetros determinados"
+            echo "Uso 1 de $0: <script> <nuevaconfig> <nombre_de_la_nueva_configuracion>"
+            exit 1
         fi
         directorio=$2
-        if 
-
-
+        comando=($(find /opt -maxdepth 1 -type d -name "$2"))
+            #Comprueba si el directorio existe
+        if [ $comando ]; then
+            echo "Error, el directorio \"$2\" que intenta crear, ya existe"
+            exit 1
+        fi
+        sudo mkdir /opt/$2
+        
+            #Controla que el último proceso haya sido exitoso
+        if [ $? -eq 0 ]; then
+            echo "El directorio \"$2\" se ha creado en /opt"
+        else
+            echo "Ha ocurrido un error creando el directorio"
+            exit 1
+        fi
 fi

@@ -46,8 +46,7 @@ if [ "$1" = "nuevaconfig" ]; then
     directorio="$2"
 
         #Comprueba si el directorio existe
-    comando=$(find /opt -maxdepth 1 -type d -name "$directorio")
-    if [ $comando ]; then
+    if [ -d "/opt/$directorio" ]; then
         echo "Error, el directorio \"$directorio\" que intenta crear, ya existe"
         exit 1
     fi
@@ -75,8 +74,7 @@ elif [ "$1" = "descargar" ]; then
     enlace="$3"
 
         #Comprueba si existe el directorio donde desea descargar
-    comando=$(find /opt -maxdepth 1 -type d -name "$directorio")
-    if [ $comando ]; then
+    if [ -d "/opt/$directorio" ]; then
             #Comprueba que los paquetes necesarios estén instalados
         for i in wget gzip bzip2; do
             if ! command -V "$i" >/dev/null 2>&1; then
@@ -129,6 +127,37 @@ elif [ "$1" = "descargar" ]; then
     else
         echo "Error, el directorio no existe. Créelo primero"
         echo "Para crearlo puede usar el USO 1 de este script"
+        exit 1
+    fi
+
+#--Uso 3. script.sh cerrar nombre_de_la_configuracion--
+elif [ "$1" = "cerrar" ]; then
+        #Controla que se hayan pasado los parámetros necesarios
+    if [ $# -ne 2 ]; then
+        echo "Error, no se han pasado los parámetros determinados"
+        echo "Uso 3 de $0: <script> <cerrar> <nombre_de_la_configuracio>"
+        exit 1
+    fi
+    directorio="$2"
+
+        #Comprueba si existe el directorio donde desea descargar
+    if [ -d "/opt/$directorio" ]; then
+        nombre_archivo="${destino}_$(date +%Y_%m_%d).tar.gz"
+        dir_destino="/usr/local/lib"
+
+            #Crea el archivo en el directorio de destino
+        sudo tar -czf "$dir_destino/$nombre_archivo" -C "/opt" "$directorio"
+
+        if [ $? -eq 0 ]; then
+            echo "La compresión y copia de seguridad se han realizado con éxito"
+            echo "Esta se encuentra en $dir_destino y su nombre es: $nombre_archivo"
+        else
+            echo "Error. Ha fallado la creación de la copia de seguridad"
+            exit 1
+        fi
+        
+    else
+        echo "Error, el directorio $directorio no existe"
         exit 1
     fi
 fi

@@ -86,25 +86,46 @@ elif [ "$1" = "descargar" ]; then
             fi
         done
 
-            #Descarga el archivo en el directorio adecuado
+            #Descarga el archivo en el directorio temporal
         sudo wget -q -P "/opt/$directorio" "$enlace"
-            #Saca el nombre del archivo, primero buscándolo, luego cogiendo solo el nombre base
-        x=$(find "/opt/$directorio" -maxdepth 1 -type f -name "*.tar.*" | head -n 1)
-        archivo=$(basename "$x")      
+
+            #Controla que el último proceso haya sido exitoso
+        if [ $? -eq 0 ]; then
+            echo "El archivo ha sido descargado con éxito"
+        else
+            echo "Error en la descarga"
+            exit 1
+        fi
+
+            #Obtiene el nombre del archivo desde la URL
+        archivo=$(basename "$enlace")
+        ruta_archivo="/opt/$directorio/$archivo"
+
+            #Comprueba que el archivo descargado existe
+        if [ ! -f "$ruta_archivo" ]; then
+            echo "Error, no se ha encontrado el archivo descargado $archivo"
+            exit 1
+        fi
 
             #Lo descomprime
         if [[ "$archivo" == *.tar.gz ]]; then
-            sudo tar -xzf "/opt/$directorio/$archivo" -C "/opt/$directorio"
+            sudo tar -xzf "$ruta_archivo" -C "/opt/$directorio"
         elif [[ "$archivo" == *.tar.bz2 ]]; then
-            sudo tar -xjf "/opt/$directorio/$archivo" -C "/opt/$directorio"
+            sudo tar -xjf "$ruta_archivo" -C "/opt/$directorio"
         else
             echo "Archivo descargado, pero no es .tar.gz ni .tar.bz2"
-            echo "No se ha procedido a descomprimirlo"
+            echo "No se ha podido descomprirlo"
+            exit 1
         fi
+
             #Controla que el último proceso haya sido exitoso
         if [ $? -eq 0 ]; then
-            echo "El archivo ha sido descargado y descomprimido con éxito"
+            echo "El archivo ha sido descomprimido con éxito"
+        else
+            echo "Error durante la descompresión"
+            exit 1
         fi
+
     else
         echo "Error, el directorio no existe. Créelo primero"
         echo "Para crearlo puede usar el USO 1 de este script"

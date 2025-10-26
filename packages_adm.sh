@@ -13,7 +13,7 @@
 #--Uso 3. script.sh cerrar nombre_de_la_configuracion
 #---------comprimirá lo existente en el directorio especificado y
 #---------guadará dicho paquete comprimido en /opt/lib haciendo una
-#---------copia de seguridad
+#---------copia de seguridad en /usr/local/lib
 
 #--Uso 4. script.sh recuperar nombre_de_la_configuracion
 #---------desempaquetará la copia de seguridad especificada y la
@@ -135,7 +135,7 @@ elif [ "$1" = "cerrar" ]; then
         #Controla que se hayan pasado los parámetros necesarios
     if [ $# -ne 2 ]; then
         echo "Error, no se han pasado los parámetros determinados"
-        echo "Uso 3 de $0: <script> <cerrar> <nombre_de_la_configuracio>"
+        echo "Uso 3 de $0: <script> <cerrar> <nombre_de_la_configuracion>"
         exit 1
     fi
     directorio="$2"
@@ -155,9 +155,54 @@ elif [ "$1" = "cerrar" ]; then
             echo "Error. Ha fallado la creación de la copia de seguridad"
             exit 1
         fi
-        
+
     else
         echo "Error, el directorio $directorio no existe"
         exit 1
+    fi
+
+#--Uso 4. script.sh recuperar nombre_de_la_configuracion--
+elif [ "$1" = "recuperar" ]; then
+        #Controla que se hayan pasado los parámetros necesarios
+    if [ $# -ne 2 ]; then
+        echo "Error, no se han pasado los parámetros determinados"
+        echo "Uso 4 de $0: <script> <recuperar> <nombre_de_la_configuracion>"
+        exit 1
+    fi
+
+    nombre_conf=$2
+
+        #Busca la o las copias que haya con ese nombre
+    copias=$(find /usr/local/lib -maxdepth 1 -type f -name "$nombre_conf*")
+
+        #Controla la existencia de alguna copia de seguridad
+    if [ -z "$copias" ]; then
+        echo "Error, no existe ninguna copia de seguridad sobre esa configuración"
+        exit 1
+    else
+            #Comprueba si existe el directorio donde se va a recuperar
+        if [ ! -d "/opt/$nombre_conf" ]; then
+            echo "Error, no existe el directorio $nombre_conf y no se podrá guardar la copia de seguridad allí"
+            echo "Creelo usando el USO 1 de este script"
+            exit 1
+        fi
+
+            #Ordena las copias y coge solo la última
+        archivo=$(echo $copias | tr " " "\n" | sort -nr | head -1)
+
+            #Borra el contenido del directorio de destino
+        destino="/opt/$nombre_conf"
+        sudo rm -r $destino/*
+
+            #Extrae el contenido en el directorio de destino
+        sudo tar -xzf "$archivo" -C "/opt/$nombre_conf"
+
+            ##Controla que el último proceso haya sido exitoso
+        if [ $? -eq 0 ]; then
+            echo "La copia de seguridad ha sido recuperada con éxito"
+        else
+            echo "Error durante la recuperación"
+            exit 1
+        fi
     fi
 fi

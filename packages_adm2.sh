@@ -11,7 +11,7 @@ usage() {
     cat << EOF
 Uso: $0 [OPCIONES] [ARGUMENTOS]
 
-Script para la creación de direcorios, descarga de enlaces y su posterior descompresión, compresión de una carpeta de trabajo para la creación de una copia de seguridad y/o la recuperación de una copia de seguridad realizada previamente.
+Script para la creación de directorios, descarga de enlaces y su posterior descompresión, compresión de una carpeta de trabajo para la creación de una copia de seguridad y/o la recuperación de una copia de seguridad realizada previamente.
 
 Opciones:
     -a, --accion ACCION           Acción que se realizará (obligatorio)
@@ -38,15 +38,25 @@ last_error_control() {
     fi
 }
 
-package_installation() {
-    #Comprueba que los paquetes necesarios estén instalados
-    for i in wget gzip bzip2; do
-        if ! command -V "$i" >/dev/null 2>&1; then
-            echo "Instalando $i"
-            sudo apt-get update -qq
-            sudo apt-get install -y -qq "$i"
-        fi
-    done
+check_accion() {
+    if [ -z "$accion" ]; then
+        echo "Error: Debe especificarse una acción con -a o --accion" >&2
+        usage
+    fi
+}
+
+check_directorio() {
+    if [ -z "$directorio" ]; then
+        echo "Error: Para esta acción debe especificarse el nombre de un directorio con -d o --directorio" >&2
+        usage
+    fi
+}
+
+check_enlace() {
+    if [ -z "$enlace" ]; then
+        echo "Error: Para esta acción debe especificarse un enlace para la descarga con -e o --enlace" >&2
+        usage
+    fi
 }
 
 #--Declaración de variables--
@@ -95,16 +105,15 @@ while true; do
 done
 
     #Controla que se pase la opcion obligatoria (accion)
-if [ -z "$accion" ]; then
-    echo "Error: Debe especificarse una acción con -a o --accion" >&2
-    usage
-fi
+check_accion
 
     #Manejo de las distintas opciones
-case "$opcion" in
+case "$accion" in
     nuevaconfig | nuevaconfiguracion)
+        check_directorio
+
             #Comprueba si el directorio existe
-        if [ ! -d "/opt/$directorio" ]; then
+        if [ -d "/opt/$directorio" ]; then
             echo "Error, el directorio \"$directorio\" que está intentando crear, ya existe"
             exit 1
         fi
@@ -115,10 +124,20 @@ case "$opcion" in
         last_error_control
         ;;
     descargar)
+        check_directorio
+        check_enlace
+
                 #Comprueba si existe el directorio donde desea descargar
         if [ -d "/opt/$directorio" ]; then
 
-            package_installation #Comprueba los paquetes que son necesarios y, si no, los instala
+            #Comprueba que los paquetes necesarios estén instalados
+            for i in wget gzip bzip2; do
+                if ! command -V "$i" >/dev/null 2>&1; then
+                    echo "Instalando $i"
+                    sudo apt-get update -qq >/dev/null 2>&1
+                    sudo apt-get install -y -qq "$i" >/dev/null 2>&1
+                fi
+            done
 
                 #Obtiene el nombre del fichero desde la URL
             fichero=$(basename "$enlace")
@@ -159,12 +178,15 @@ case "$opcion" in
         fi
         ;;
     cerrar)
+        check_directorio
         if [ -d "/opt/$directorio" ]; then
-            nombre_archivo="${destino}_$(date +%Y_%m_%d).tar.gz"
+            nombre_archivo="${directorio}_$(date +%Y_%m_%d).tar.gz"
             dir_destino="/usr/local/lib"
 
                 #Crea el archivo en el directorio de destino
             sudo tar -czf "$dir_destino/$nombre_archivo" -C "/opt" "$directorio"
+
+            last_error_control
 
         else
             echo "Error, el directorio $directorio no existe"
@@ -172,6 +194,7 @@ case "$opcion" in
         fi
         ;;
     recuperar)
+        check_directorio
             #Busca la o las copias que haya con ese nombre
         copias=$(find /usr/local/lib -maxdepth 1 -type f -name "$directorio*")
 
@@ -198,7 +221,8 @@ case "$opcion" in
             sudo tar -xzf "$archivo" -C "/opt/$directorio"
 
             last_error_control
-            ;;
+        fi
+        ;;
     *)
         echo "Error, la acción que ha introducido no ha sido encontrada"
         ;;

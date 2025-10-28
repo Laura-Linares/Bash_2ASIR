@@ -1,9 +1,13 @@
 #! /bin/bash
 
 #----Author:LauraLinares-----
-#---------Version:1.0--------
+#---------Version:2.0--------
 #---Script:packages_adm2.sh---
+
 #---Uso: upgrade de packages_adm.sh haciendo uso de getopt---
+#--Script para la creación de directorios, descarga de enlaces y su posterior descompresión, 
+#--compresión de una carpeta de trabajo para la creación de una copia de seguridad y/o la---
+#--recuperación de una copia de seguridad realizada previamente-----------------------------
 
 
 #--Declaración de funciones--

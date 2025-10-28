@@ -28,8 +28,25 @@ EOF
     exit 1
 }
 
-existencia_directorio() {
-    
+last_error_control() {
+    #Controla que el último proceso haya sido exitoso
+    if [ $? -eq 0 ]; then
+        echo "La acción se ha completado sin fallos"
+    else
+        echo "Ha ocurrido un error durante la ejecución de esta acción"
+        exit 1
+    fi
+}
+
+package_installation() {
+    #Comprueba que los paquetes necesarios estén instalados
+    for i in wget gzip bzip2; do
+        if ! command -V "$i" >/dev/null 2>&1; then
+            echo "Instalando $i"
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq "$i"
+        fi
+    done
 }
 
 #--Declaración de variables--
@@ -95,71 +112,49 @@ case "$opcion" in
             #Crea el directorio
         sudo mkdir /opt/$directorio
 
-            #Controla que el último proceso haya sido exitoso
-        if [ $? -eq 0 ]; then
-            echo "El directorio \"$directorio\" se ha creado en /opt"
-        else
-            echo "Ha ocurrido un error creando el directorio"
-            exit 1
-        fi
+        last_error_control
         ;;
     descargar)
                 #Comprueba si existe el directorio donde desea descargar
         if [ -d "/opt/$directorio" ]; then
-                #Comprueba que los paquetes necesarios estén instalados
-            for i in wget gzip bzip2; do
-                if ! command -V "$i" >/dev/null 2>&1; then
-                    echo "Instalando $i"
-                    sudo apt-get update -qq
-                    sudo apt-get install -y -qq "$i"
-                fi
-            done
 
-                #Obtiene el nombre del archivo desde la URL
-            archivo=$(basename "$enlace")
-            
+            package_installation #Comprueba los paquetes que son necesarios y, si no, los instala
+
+                #Obtiene el nombre del fichero desde la URL
+            fichero=$(basename "$enlace")
+                #Almacena en una variable la ruta que tendría el fichero
+            ruta_fichero="/opt/$directorio/$fichero"
+
+            #Comprueba si el fichero ya existe
+            if [ -f "$ruta_fichero" ]; then
+                echo "Error, el fichero que intenta descargar ya existe en ese directorio"
+                exit 1
+            fi
 
                 #Descarga el archivo en el directorio
             sudo wget -q -P "/opt/$directorio" "$enlace"
 
-                #Controla que el último proceso haya sido exitoso
-            if [ $? -eq 0 ]; then
-                echo "El archivo ha sido descargado con éxito"
-            else
-                echo "Error en la descarga"
-                exit 1
-            fi
-
-            ruta_archivo="/opt/$directorio/$archivo"
-
                 #Comprueba que el archivo descargado existe
-            if [ ! -f "$ruta_archivo" ]; then
-                echo "Error, no se ha encontrado el archivo descargado $archivo"
+            if [ ! -f "$ruta_fichero" ]; then
+                echo "Error, no se ha encontrado el archivo descargado $fichero"
                 exit 1
             fi
 
                 #Lo descomprime
-            if [[ "$archivo" == *.tar.gz ]]; then
-                sudo tar -xzf "$ruta_archivo" -C "/opt/$directorio"
-            elif [[ "$archivo" == *.tar.bz2 ]]; then
-                sudo tar -xjf "$ruta_archivo" -C "/opt/$directorio"
+            if [[ "$fichero" == *.tar.gz ]]; then
+                sudo tar -xzf "$ruta_fichero" -C "/opt/$directorio"
+            elif [[ "$fichero" == *.tar.bz2 ]]; then
+                sudo tar -xjf "$ruta_fichero" -C "/opt/$directorio"
             else
                 echo "Archivo descargado, pero no es .tar.gz ni .tar.bz2"
-                echo "No se ha podido descomprirlo"
+                echo "No se ha podido descomprimir"
                 exit 1
             fi
 
-                #Controla que el último proceso haya sido exitoso
-            if [ $? -eq 0 ]; then
-                echo "El archivo ha sido descomprimido con éxito"
-            else
-                echo "Error durante la descompresión"
-                exit 1
-            fi
+            last_error_control
 
         else
             echo "Error, el directorio no existe. Créelo primero"
-            echo "Para crearlo puede usar el USO 1 de este script"
             exit 1
         fi
         ;;
@@ -170,14 +165,6 @@ case "$opcion" in
 
                 #Crea el archivo en el directorio de destino
             sudo tar -czf "$dir_destino/$nombre_archivo" -C "/opt" "$directorio"
-
-            if [ $? -eq 0 ]; then
-                echo "La compresión y copia de seguridad se han realizado con éxito"
-                echo "Esta se encuentra en $dir_destino y su nombre es: $nombre_archivo"
-            else
-                echo "Error. Ha fallado la creación de la copia de seguridad"
-                exit 1
-            fi
 
         else
             echo "Error, el directorio $directorio no existe"
@@ -210,16 +197,9 @@ case "$opcion" in
                 #Extrae el contenido en el directorio de destino
             sudo tar -xzf "$archivo" -C "/opt/$directorio"
 
-                ##Controla que el último proceso haya sido exitoso
-            if [ $? -eq 0 ]; then
-                echo "La copia de seguridad ha sido recuperada con éxito"
-            else
-                echo "Error durante la recuperación"
-                exit 1
-            fi
+            last_error_control
             ;;
     *)
-        echo "Error, acción no encontrada"
+        echo "Error, la acción que ha introducido no ha sido encontrada"
         ;;
-esac 
-
+esac

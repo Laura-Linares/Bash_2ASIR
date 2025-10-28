@@ -92,7 +92,7 @@ elif [ "$1" = "descargar" ]; then
             sudo tar -xjf "$ruta_archivo" -C "/opt/$directorio"
         else
             echo "Archivo descargado, pero no es .tar.gz ni .tar.bz2"
-            echo "No se ha podido descomprirlo"
+            echo "No se ha podido descomprimir"
             exit 1
         fi
 

@@ -3,7 +3,7 @@
 #----Author:LauraLinares-----
 #---------Version:1.0--------
 #---Script:packages_adm.sh---
-#--Uso 1. script.sh nuevaconfig nombre_de_la_nueva_configuracion
+#--Uso 1. script.sh nuevaconfiguracion nombre_de_la_nueva_configuracion
 #---------por defecto usará el directorio /opt
 #---------creará un directorio dentro del directorio por defecto
 
@@ -19,13 +19,6 @@
 #---------desempaquetará la copia de seguridad especificada y la
 #---------copiará en el directorio /opt, eliminando lo que hubiese
 
-#--Declaración de variables--
-
-
-
-#--Declaración de funciones--
-
-
 #------Inicio del script-----
 
     #Controla que se pase mínimo 1 parámetro
@@ -35,19 +28,19 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-#--Uso 1. script.sh nuevaconfig nombre_de_la_nueva_configuracion--
-if [ "$1" = "nuevaconfig" ]; then
+#--Uso 1. script.sh nuevaconfiguracion nombre_de_la_nueva_configuracion--
+if [ "$1" = "nuevaconfiguracion" ]; then
         #Controla que se hayan pasado los parámetros necesarios
     if [ $# -ne 2 ]; then
-        echo "Error, no se han pasado los parámetros determinados"
-        echo "Uso 1 de $0: <script> <nuevaconfig> <nombre_de_la_nueva_configuracion>"
+        echo "Error, no se han pasado los parámetros correctos"
+        echo "Uso 1 de $0: <script> <nuevaconfiguracion> <nombre_de_la_nueva_configuracion>"
         exit 1
     fi
     directorio="$2"
 
         #Comprueba si el directorio existe
     if [ -d "/opt/$directorio" ]; then
-        echo "Error, el directorio \"$directorio\" que intenta crear, ya existe"
+        echo "Error, el directorio \"$directorio\" que está intentando crear, ya existe"
         exit 1
     fi
 
@@ -84,7 +77,11 @@ elif [ "$1" = "descargar" ]; then
             fi
         done
 
-            #Descarga el archivo en el directorio temporal
+            #Obtiene el nombre del archivo desde la URL
+        archivo=$(basename "$enlace")
+        
+
+            #Descarga el archivo en el directorio
         sudo wget -q -P "/opt/$directorio" "$enlace"
 
             #Controla que el último proceso haya sido exitoso
@@ -95,8 +92,6 @@ elif [ "$1" = "descargar" ]; then
             exit 1
         fi
 
-            #Obtiene el nombre del archivo desde la URL
-        archivo=$(basename "$enlace")
         ruta_archivo="/opt/$directorio/$archivo"
 
             #Comprueba que el archivo descargado existe

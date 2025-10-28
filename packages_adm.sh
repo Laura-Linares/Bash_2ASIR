@@ -1,7 +1,7 @@
 #! /bin/bash
 
 #----Author:LauraLinares-----
-#---------Version:1.0--------
+#---------Version:4.2--------
 #---Script:packages_adm.sh---
 #--Uso 1. script.sh nuevaconfiguracion nombre_de_la_nueva_configuracion
 #---------por defecto usará el directorio /opt
@@ -38,22 +38,7 @@ if [ "$1" = "nuevaconfiguracion" ]; then
     fi
     directorio="$2"
 
-        #Comprueba si el directorio existe
-    if [ -d "/opt/$directorio" ]; then
-        echo "Error, el directorio \"$directorio\" que está intentando crear, ya existe"
-        exit 1
-    fi
-
-        #Crea el directorio
-    sudo mkdir /opt/$directorio
-
-        #Controla que el último proceso haya sido exitoso
-    if [ $? -eq 0 ]; then
-        echo "El directorio \"$directorio\" se ha creado en /opt"
-    else
-        echo "Ha ocurrido un error creando el directorio"
-        exit 1
-    fi
+        
 
 #--Uso 2. script.sh descargar directorio_donde_descargar enlace--
 elif [ "$1" = "descargar" ]; then

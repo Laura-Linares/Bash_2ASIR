@@ -179,7 +179,7 @@ case "$accion" in
                 # Crea el nombre que tendrá el archivo con la fecha del momento en que se ejecuta la acción
             nombre_archivo="${directorio}_$(date +%Y_%m_%d).tar.gz"
             dir_destino="/usr/local/lib"
-                # Crea el archivo en el directorio de destino
+                # Comprime el archivo en el directorio de destino
             sudo tar -czf "$dir_destino/$nombre_archivo" -C "/opt" "$directorio"
                 # Comprueba errores en la ejecución
             last_error_control

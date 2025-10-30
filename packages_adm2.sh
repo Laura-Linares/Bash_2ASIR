@@ -136,10 +136,10 @@ case "$accion" in
         if [ -d "/opt/$directorio" ]; then
             # Comprueba que los paquetes necesarios estén instalados
             for i in wget gzip bzip2; do
-                if ! command -V "$i" >/dev/null 2>&1; then
+                if ! command -V "$i" &>/dev/null; then
                     log_info "Instalando $i"
-                    sudo apt-get update -qq >/dev/null 2>&1
-                    sudo apt-get install -y -qq "$i" >/dev/null 2>&1
+                    sudo apt-get update -qq &>/dev/null
+                    sudo apt-get install -y -qq "$i" &>/dev/null
                 fi
             done
                 # Obtiene el nombre del fichero desde la URL

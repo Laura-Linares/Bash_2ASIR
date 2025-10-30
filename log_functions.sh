@@ -26,7 +26,7 @@ _log() {
     timestamp=$(date '+%Y-%m-%d_%H:%M:%S')
 
     # Salida por pantalla
-    echo -e "${color}[$timestamp] [$type] $message${NC}"
+    echo "${color}[$timestamp] [$type] $message${NC}"
 
     # Escritura en .log
     echo "[$timestamp] [$type] $message" >> "$LOGFILE"
